@@ -1,0 +1,11 @@
+enum Role {
+  ADMIN
+  USER
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  AUDIO
+  PDF
+}

@@ -1,0 +1,20 @@
+model SubscriptionPackage {
+  id   String @id @default(uuid())
+  name String @unique
+
+  maxFolders      Int
+  maxLevels       Int
+  allowedFileType FileType[]
+  maxFileSizeMB   Int
+  fileLimit       Int
+  filesPerFolder  Int
+
+  userSubscriptions UserSubscription[]
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("SubscriptionPackages")
+}

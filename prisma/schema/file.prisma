@@ -1,0 +1,22 @@
+model File {
+  id       String @id @default(uuid())
+  name     String
+  userId   String
+  folderId String
+
+  user   User   @relation(fields: [userId], references: [id])
+  folder Folder @relation(fields: [folderId], references: [id])
+
+  size Int // store in bytes
+  type FileType
+  path String
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("Files")
+}

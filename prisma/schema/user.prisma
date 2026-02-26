@@ -1,0 +1,20 @@
+model User {
+  id         String  @id @default(uuid())
+  name       String
+  email      String  @unique
+  password   String
+  role       Role    @default(USER)
+  isVerified Boolean @default(false)
+
+  subscriptions UserSubscription[]
+  folders       Folder[]
+  files         File[]
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("Users")
+}

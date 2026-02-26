@@ -8,4 +8,8 @@ export default {
   port: process.env.PORT,
   database_url: process.env.DATABASE_URL,
   frontend_url: process.env.FRONTEND_URL,
+  jwt: {
+    secret: process.env.JWT_SECRET,
+    expires_in: process.env.JWT_EXPIRES_IN,
+  },
 };

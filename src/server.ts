@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Server } from "http";
 import app from "./app";
 import config from "./app/config";
@@ -25,7 +26,7 @@ async function bootstrap() {
     // Handle unhandled promise rejections
     process.on("unhandledRejection", (error) => {
       console.log(
-        "Unhandled Rejection is detected, we are closing our server..."
+        "Unhandled Rejection is detected, we are closing our server...",
       );
       if (server) {
         server.close(() => {

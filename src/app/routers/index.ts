@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { AuthRouter } from "../modules/auth/auth.routes";
-import { SubscriptionRouter } from "../modules/subscription/subscription.routes";
+import { AuthRoutes } from "../modules/auth/auth.routes";
+import { SubscriptionRoutes } from "../modules/subscription/subscription.routes";
 
 const router = Router();
 const moduleRouters = [
   {
     path: "/auth",
-    route: AuthRouter,
+    route: AuthRoutes,
   },
   {
     path: "/subscriptions",
-    route: SubscriptionRouter,
+    route: SubscriptionRoutes,
   },
 ];
 

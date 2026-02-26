@@ -40,4 +40,4 @@ router.delete(
   SubscriptionController.deletePackage,
 );
 
-export const SubscriptionRouter = router;
+export const SubscriptionRoutes = router;

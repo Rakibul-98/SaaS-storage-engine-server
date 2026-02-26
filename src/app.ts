@@ -11,7 +11,7 @@ app.use(
   cors({
     origin: config.frontend_url,
     credentials: true,
-  })
+  }),
 );
 
 // Parser

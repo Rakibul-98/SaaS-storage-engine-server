@@ -7,7 +7,7 @@ model File {
   user   User   @relation(fields: [userId], references: [id])
   folder Folder @relation(fields: [folderId], references: [id])
 
-  size Int // store in bytes
+  size Int
   type FileType
   path String
 

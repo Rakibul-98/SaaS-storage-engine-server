@@ -3,6 +3,7 @@ import { AuthRoutes } from "../modules/auth/auth.routes";
 import { SubscriptionRoutes } from "../modules/subscription/subscription.routes";
 import { UserSubscriptionRoutes } from "../modules/userSubscription/userSubscription.route";
 import { FolderRoutes } from "../modules/folder/folder.route";
+import { FileRoutes } from "../modules/file/file.route";
 
 const router = Router();
 const moduleRouters = [
@@ -21,6 +22,10 @@ const moduleRouters = [
   {
     path: "/folders",
     route: FolderRoutes,
+  },
+  {
+    path: "/files",
+    route: FileRoutes,
   },
 ];
 

@@ -1,15 +1,43 @@
 import { Router } from "express";
 import { SubscriptionController } from "./subscription.controller";
 import validateRequest from "../../middlewares/validateRequest";
-import { createSubscriptionSchema } from "./subscription.validation";
+import {
+  createSubscriptionSchema,
+  updateSubscriptionSchema,
+} from "./subscription.validation";
 
-const route = Router();
+const router = Router();
 
-route.post(
+router.post(
   "/",
   // auth(Role.ADMIN),
   validateRequest(createSubscriptionSchema),
   SubscriptionController.createPackage,
 );
 
-export const SubscriptionRouter = route;
+router.get(
+  "/",
+  // auth(Role.ADMIN),
+  SubscriptionController.getAllPackages,
+);
+
+router.get(
+  "/:id",
+  // auth(Role.ADMIN),
+  SubscriptionController.getSinglePackage,
+);
+
+router.patch(
+  "/:id",
+  // auth(Role.ADMIN),
+  validateRequest(updateSubscriptionSchema),
+  SubscriptionController.updatePackage,
+);
+
+router.delete(
+  "/:id",
+  // auth(Role.ADMIN),
+  SubscriptionController.deletePackage,
+);
+
+export const SubscriptionRouter = router;

@@ -4,6 +4,7 @@ import { SubscriptionRoutes } from "../modules/subscription/subscription.routes"
 import { UserSubscriptionRoutes } from "../modules/userSubscription/userSubscription.route";
 import { FolderRoutes } from "../modules/folder/folder.route";
 import { FileRoutes } from "../modules/file/file.route";
+import { DashboardRoutes } from "../modules/dashboard/dashboard.route";
 
 const router = Router();
 const moduleRouters = [
@@ -26,6 +27,10 @@ const moduleRouters = [
   {
     path: "/files",
     route: FileRoutes,
+  },
+  {
+    path: "/dashboard",
+    route: DashboardRoutes,
   },
 ];
 

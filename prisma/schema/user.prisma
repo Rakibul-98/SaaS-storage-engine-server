@@ -6,6 +6,12 @@ model User {
   role       Role    @default(USER)
   isVerified Boolean @default(false)
 
+  verifyToken       String?
+  verifyTokenExpiry DateTime?
+
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
   subscriptions UserSubscription[]
   folders       Folder[]
   files         File[]

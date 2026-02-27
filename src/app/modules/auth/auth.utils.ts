@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import config from "../../config";
+import crypto from "crypto";
 
 export const generateAccessToken = (payload: object) => {
   return jwt.sign(payload, config.jwt.jwt_access_secret as string, {
@@ -12,3 +13,5 @@ export const generateRefreshToken = (payload: object) => {
     expiresIn: "7d",
   });
 };
+
+export const generateToken = () => crypto.randomBytes(32).toString("hex");

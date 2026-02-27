@@ -1,5 +1,5 @@
-import { prisma } from "../../shared/prisma";
-import { TFolderNode } from "./folder.types";
+import { prisma } from "../shared/prisma";
+import { TFolderNode } from "../types/folder.types";
 
 export const buildFolderTree = (
   folders: TFolderNode[],

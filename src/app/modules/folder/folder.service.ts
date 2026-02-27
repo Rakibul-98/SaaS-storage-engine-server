@@ -1,8 +1,12 @@
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
-import { TCreateFolderPayload, TUpdateFolderPayload } from "./folder.types";
+import {
+  TCreateFolderPayload,
+  TUpdateFolderPayload,
+} from "../../types/folder.types";
 import { prisma } from "../../shared/prisma";
-import { buildFolderTree, checkIfDescendant } from "./folder.utils";
+import { buildFolderTree, checkIfDescendant } from "../../utils/folder.utils";
+import { IOptions, paginationHelper } from "../../helper/paginationHelper";
 
 const createFolder = async (userId: string, payload: TCreateFolderPayload) => {
   const activeSubscription = await prisma.userSubscription.findFirst({
@@ -73,16 +77,52 @@ const createFolder = async (userId: string, payload: TCreateFolderPayload) => {
   return folder;
 };
 
-const getMyFolders = async (userId: string) => {
-  return prisma.folder.findMany({
-    where: {
+const getMyFolders = async (
+  userId: string,
+  filters: any,
+  options: IOptions,
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  const andConditions: any[] = [
+    {
       userId,
       isDeleted: false,
     },
-    include: {
-      children: true,
+  ];
+
+  if (filters.parentId) {
+    andConditions.push({
+      parentId: filters.parentId,
+    });
+  }
+
+  const whereConditions = {
+    AND: andConditions,
+  };
+
+  const data = await prisma.folder.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy: {
+      [sortBy]: sortOrder,
     },
   });
+
+  const total = await prisma.folder.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data,
+  };
 };
 
 const getFolderTree = async (userId: string) => {

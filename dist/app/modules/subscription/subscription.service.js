@@ -27,6 +27,39 @@ const createPackage = (payload) => __awaiter(void 0, void 0, void 0, function* (
         data: payload,
     });
 });
+const getAllPackages = () => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma_1.prisma.subscriptionPackage.findMany({
+        where: { isDeleted: false },
+        orderBy: { createdAt: "desc" },
+    });
+});
+const getSinglePackage = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.prisma.subscriptionPackage.findFirst({
+        where: { id, isDeleted: false },
+    });
+    if (!result) {
+        throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "Package not found");
+    }
+    return result;
+});
+const updatePackage = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    yield getSinglePackage(id);
+    return prisma_1.prisma.subscriptionPackage.update({
+        where: { id },
+        data: payload,
+    });
+});
+const deletePackage = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    yield getSinglePackage(id);
+    return prisma_1.prisma.subscriptionPackage.update({
+        where: { id },
+        data: { isDeleted: true },
+    });
+});
 exports.SubscriptionService = {
     createPackage,
+    getAllPackages,
+    getSinglePackage,
+    updatePackage,
+    deletePackage,
 };

@@ -2,7 +2,8 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { prisma } from "../../shared/prisma";
 import fs from "fs";
-import { resolveFileType } from "./file.utils";
+import { resolveFileType } from "../../utils/file.utils";
+import { IOptions, paginationHelper } from "../../helper/paginationHelper";
 
 const uploadFile = async (
   userId: string,
@@ -109,7 +110,11 @@ const uploadFile = async (
   return savedFile;
 };
 
-const getFilesByFolder = async (userId: string, folderId: string) => {
+const getFilesByFolder = async (
+  userId: string,
+  folderId: string,
+  options: IOptions,
+) => {
   if (!folderId) {
     throw new ApiError(httpStatus.BAD_REQUEST, "folderId is required");
   }
@@ -126,18 +131,36 @@ const getFilesByFolder = async (userId: string, folderId: string) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Folder not found");
   }
 
-  const files = await prisma.file.findMany({
-    where: {
-      folderId,
-      userId,
-      isDeleted: false,
-    },
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  const whereConditions = {
+    folderId,
+    userId,
+    isDeleted: false,
+  };
+
+  const data = await prisma.file.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
     orderBy: {
-      createdAt: "desc",
+      [sortBy]: sortOrder,
     },
   });
 
-  return files;
+  const total = await prisma.file.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data,
+  };
 };
 
 const getSingleFile = async (userId: string, id: string) => {

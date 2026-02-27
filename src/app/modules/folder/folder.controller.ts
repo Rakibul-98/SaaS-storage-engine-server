@@ -4,6 +4,8 @@ import httpStatus from "http-status";
 import { FolderService } from "./folder.service";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
+import pick from "../../shared/pick";
+import { paginationOptions } from "../../helper/paginationHelper";
 
 const createFolder = catchAsync(async (req: any, res: Response) => {
   const result = await FolderService.createFolder(req.user.id, req.body);
@@ -17,13 +19,21 @@ const createFolder = catchAsync(async (req: any, res: Response) => {
 });
 
 const getMyFolders = catchAsync(async (req: any, res: Response) => {
-  const result = await FolderService.getMyFolders(req.user.id);
+  const filters = pick(req.query, ["parentId"]);
+  const options = pick(req.query, paginationOptions);
+
+  const result = await FolderService.getMyFolders(
+    req.user.id,
+    filters,
+    options,
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Folders retrieved successfully",
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 

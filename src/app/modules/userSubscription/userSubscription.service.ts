@@ -1,6 +1,6 @@
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
-import { TCreateUserSubscriptionPayload } from "./userSubscription.types";
+import { TCreateUserSubscriptionPayload } from "../../types/userSubscription.types";
 import { prisma } from "../../shared/prisma";
 
 const createSubscription = async (

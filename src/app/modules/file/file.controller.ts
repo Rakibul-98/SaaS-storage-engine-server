@@ -4,6 +4,8 @@ import { FileService } from "./file.service";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import ApiError from "../../errors/ApiError";
+import pick from "../../shared/pick";
+import { paginationOptions } from "../../helper/paginationHelper";
 
 const uploadFile = catchAsync(async (req: any, res: Response) => {
   if (!req.body.folderId) {
@@ -25,16 +27,20 @@ const uploadFile = catchAsync(async (req: any, res: Response) => {
 });
 
 const getFilesByFolder = catchAsync(async (req: any, res) => {
+  const options = pick(req.query, paginationOptions);
+
   const result = await FileService.getFilesByFolder(
     req.user.id,
     req.query.folderId as string,
+    options,
   );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Files retrieved successfully",
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 

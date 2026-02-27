@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import ApiError from "../../errors/ApiError";
-import { TLoginPayload, TRegisterPayload } from "./auth.types";
+import { TLoginPayload, TRegisterPayload } from "../../types/auth.types";
 import {
   generateAccessToken,
   generateRefreshToken,
   generateToken,
-} from "./auth.utils";
+} from "../../utils/auth.utils";
 import { prisma } from "../../shared/prisma";
 import { sendEmail } from "../../shared/sendEmail";
 import config from "../../config";

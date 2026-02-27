@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paginationHelper = void 0;
+exports.paginationHelper = exports.paginationOptions = void 0;
+exports.paginationOptions = ["page", "limit", "sortBy", "sortOrder"];
 const calculatePagination = (options) => {
     const page = Number(options.page) || 1;
     const limit = Number(options.limit) || 10;

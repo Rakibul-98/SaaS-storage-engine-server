@@ -27,6 +27,17 @@ const getMyFolders = catchAsync(async (req: any, res: Response) => {
   });
 });
 
+const getFolderTree = catchAsync(async (req: any, res: Response) => {
+  const result = await FolderService.getFolderTree(req.user.id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Folder tree retrieved successfully",
+    data: result,
+  });
+});
+
 const getSingleFolder = catchAsync(async (req: any, res: Response) => {
   const result = await FolderService.getSingleFolder(
     req.user.id,
@@ -70,6 +81,7 @@ const deleteFolder = catchAsync(async (req: any, res: Response) => {
 export const FolderController = {
   createFolder,
   getMyFolders,
+  getFolderTree,
   getSingleFolder,
   updateFolder,
   deleteFolder,

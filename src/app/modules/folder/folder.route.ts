@@ -18,6 +18,8 @@ router.post(
 
 router.get("/", auth("USER", "ADMIN"), FolderController.getMyFolders);
 
+router.get("/tree", auth("USER", "ADMIN"), FolderController.getFolderTree);
+
 router.get("/:id", auth("USER", "ADMIN"), FolderController.getSingleFolder);
 
 router.patch(

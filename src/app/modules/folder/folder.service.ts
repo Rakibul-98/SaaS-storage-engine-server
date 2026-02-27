@@ -2,6 +2,7 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { TCreateFolderPayload, TUpdateFolderPayload } from "./folder.types";
 import { prisma } from "../../shared/prisma";
+import { buildFolderTree } from "./folder.utils";
 
 const createFolder = async (userId: string, payload: TCreateFolderPayload) => {
   const activeSubscription = await prisma.userSubscription.findFirst({
@@ -82,6 +83,22 @@ const getMyFolders = async (userId: string) => {
       children: true,
     },
   });
+};
+
+const getFolderTree = async (userId: string) => {
+  const folders = await prisma.folder.findMany({
+    where: {
+      userId,
+      isDeleted: false,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const tree = buildFolderTree(folders, null);
+
+  return tree;
 };
 
 const getSingleFolder = async (userId: string, folderId: string) => {
@@ -182,6 +199,7 @@ const deleteFolder = async (userId: string, folderId: string) => {
 export const FolderService = {
   createFolder,
   getMyFolders,
+  getFolderTree,
   getSingleFolder,
   updateFolder,
   deleteFolder,

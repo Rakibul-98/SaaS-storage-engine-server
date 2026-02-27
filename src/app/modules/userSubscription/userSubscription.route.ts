@@ -16,4 +16,10 @@ router.get(
   UserSubscriptionController.getMySubscription,
 );
 
+router.get(
+  "/history",
+  auth("USER", "ADMIN"),
+  UserSubscriptionController.getMySubscriptionHistory,
+);
+
 export const UserSubscriptionRoutes = router;

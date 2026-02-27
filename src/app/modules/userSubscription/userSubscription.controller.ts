@@ -31,7 +31,21 @@ const getMySubscription = catchAsync(async (req: any, res: Response) => {
   });
 });
 
+const getMySubscriptionHistory = catchAsync(async (req: any, res: Response) => {
+  const result = await UserSubscriptionService.getMySubscriptionHistory(
+    req.user.id,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Subscription history retrieved successfully",
+    data: result,
+  });
+});
+
 export const UserSubscriptionController = {
   createSubscription,
   getMySubscription,
+  getMySubscriptionHistory,
 };

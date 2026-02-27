@@ -9,7 +9,7 @@ const createSubscription = async (
 ) => {
   const subscriptionPackage = await prisma.subscriptionPackage.findFirst({
     where: {
-      id: payload.packageId,
+      id: payload.subscriptionPackageId,
       isDeleted: false,
     },
   });
@@ -18,33 +18,34 @@ const createSubscription = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Subscription package not found");
   }
 
-  await prisma.userSubscription.updateMany({
-    where: {
-      userId,
-      isActive: true,
-      isDeleted: false,
-    },
-    data: {
-      isActive: false,
-    },
-  });
-
   const startDate = new Date();
   const endDate = new Date();
   endDate.setDate(startDate.getDate() + 30);
 
-  const newSubscription = await prisma.userSubscription.create({
-    data: {
-      userId,
-      packageId: subscriptionPackage.id,
-      startDate,
-      endDate,
-      isActive: true,
-    },
-    include: {
-      package: true,
-    },
-  });
+  const [newSubscription] = await prisma.$transaction([
+    prisma.userSubscription.updateMany({
+      where: {
+        userId,
+        isActive: true,
+        isDeleted: false,
+      },
+      data: {
+        isActive: false,
+      },
+    }),
+    prisma.userSubscription.create({
+      data: {
+        userId,
+        packageId: subscriptionPackage.id,
+        startDate,
+        endDate,
+        isActive: true,
+      },
+      include: {
+        package: true,
+      },
+    }),
+  ]);
 
   return newSubscription;
 };
@@ -64,7 +65,29 @@ const getMyActiveSubscription = async (userId: string) => {
   return subscription;
 };
 
+const getMySubscriptionHistory = async (userId: string) => {
+  const subscriptions = await prisma.userSubscription.findMany({
+    where: { userId, isDeleted: false },
+    select: {
+      id: true,
+      startDate: true,
+      endDate: true,
+      isActive: true,
+      package: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: { startDate: "desc" },
+  });
+
+  return subscriptions;
+};
+
 export const UserSubscriptionService = {
   createSubscription,
   getMyActiveSubscription,
+  getMySubscriptionHistory,
 };

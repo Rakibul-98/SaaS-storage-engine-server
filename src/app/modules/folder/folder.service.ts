@@ -132,23 +132,50 @@ const updateFolder = async (
 };
 
 const deleteFolder = async (userId: string, folderId: string) => {
-  const existingFolder = await prisma.folder.findFirst({
-    where: {
-      id: folderId,
-      userId,
-      isDeleted: false,
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const existingFolder = await tx.folder.findFirst({
+      where: {
+        id: folderId,
+        userId,
+        isDeleted: false,
+      },
+    });
 
-  if (!existingFolder) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Folder not found");
-  }
+    if (!existingFolder) {
+      throw new ApiError(httpStatus.NOT_FOUND, "Folder not found");
+    }
 
-  return prisma.folder.update({
-    where: { id: folderId },
-    data: {
-      isDeleted: true,
-    },
+    const softDeleteRecursively = async (id: string) => {
+      const childFolders = await tx.folder.findMany({
+        where: {
+          parentId: id,
+          isDeleted: false,
+        },
+      });
+
+      for (const child of childFolders) {
+        await softDeleteRecursively(child.id);
+      }
+
+      await tx.file.updateMany({
+        where: {
+          folderId: id,
+          isDeleted: false,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+
+      await tx.folder.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+        },
+      });
+    };
+
+    await softDeleteRecursively(folderId);
   });
 };
 

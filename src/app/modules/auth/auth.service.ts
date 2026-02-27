@@ -9,6 +9,7 @@ import {
 } from "./auth.utils";
 import { prisma } from "../../shared/prisma";
 import { sendEmail } from "../../shared/sendEmail";
+import config from "../../config";
 
 const registerUser = async (payload: TRegisterPayload) => {
   const { name, email } = payload;
@@ -34,7 +35,7 @@ const registerUser = async (payload: TRegisterPayload) => {
     },
   });
 
-  const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}`;
+  const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
 
   await sendEmail(
     email,
@@ -126,7 +127,7 @@ const forgotPassword = async (email: string) => {
     },
   });
 
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetLink = `${config.frontend_url}/reset-password?token=${resetToken}`;
 
   await sendEmail(
     email,

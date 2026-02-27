@@ -5,6 +5,7 @@ export type TCreateFolderPayload = {
 
 export type TUpdateFolderPayload = {
   name?: string;
+  parentId?: string;
 };
 export type TFolderNode = {
   id: string;

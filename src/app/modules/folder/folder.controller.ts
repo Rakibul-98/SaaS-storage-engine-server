@@ -74,7 +74,7 @@ const deleteFolder = catchAsync(async (req: any, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Folder deleted successfully",
-    data: result,
+    data: {},
   });
 });
 

@@ -2,7 +2,7 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { TCreateFolderPayload, TUpdateFolderPayload } from "./folder.types";
 import { prisma } from "../../shared/prisma";
-import { buildFolderTree } from "./folder.utils";
+import { buildFolderTree, checkIfDescendant } from "./folder.utils";
 
 const createFolder = async (userId: string, payload: TCreateFolderPayload) => {
   const activeSubscription = await prisma.userSubscription.findFirst({
@@ -142,10 +142,79 @@ const updateFolder = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Folder not found");
   }
 
-  return prisma.folder.update({
-    where: { id: folderId },
-    data: payload,
+  if (!payload.parentId) {
+    return prisma.folder.update({
+      where: { id: folderId },
+      data: {
+        name: payload.name ?? existingFolder.name,
+      },
+    });
+  }
+
+  if (payload.parentId === folderId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Cannot move folder into itself",
+    );
+  }
+
+  const newParent = await prisma.folder.findFirst({
+    where: {
+      id: payload.parentId,
+      userId,
+      isDeleted: false,
+    },
   });
+
+  if (!newParent) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Target parent folder not found");
+  }
+
+  const isDescendant = await checkIfDescendant(folderId, payload.parentId);
+
+  if (isDescendant) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Cannot move folder into its own subfolder",
+    );
+  }
+
+  const activeSubscription = await prisma.userSubscription.findFirst({
+    where: {
+      userId,
+      isActive: true,
+      isDeleted: false,
+    },
+    include: {
+      package: true,
+    },
+  });
+
+  if (!activeSubscription) {
+    throw new ApiError(httpStatus.FORBIDDEN, "No active subscription found");
+  }
+
+  const packageData = activeSubscription.package;
+
+  const newDepthLevel = newParent.depthLevel + 1;
+
+  if (newDepthLevel > packageData.maxLevels) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      `Maximum folder depth (${packageData.maxLevels}) exceeded`,
+    );
+  }
+
+  const updatedFolder = await prisma.folder.update({
+    where: { id: folderId },
+    data: {
+      name: payload.name ?? existingFolder.name,
+      parentId: payload.parentId,
+      depthLevel: newDepthLevel,
+    },
+  });
+
+  return updatedFolder;
 };
 
 const deleteFolder = async (userId: string, folderId: string) => {

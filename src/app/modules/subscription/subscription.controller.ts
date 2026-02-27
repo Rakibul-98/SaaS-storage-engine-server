@@ -58,7 +58,7 @@ const deletePackage = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Package deleted successfully",
-    data: result,
+    data: {},
   });
 });
 

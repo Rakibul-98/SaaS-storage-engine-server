@@ -12,6 +12,14 @@ router.post(
   FileController.uploadFile,
 );
 
+router.get("/", auth("USER", "ADMIN"), FileController.getFilesByFolder);
+
+router.get("/trash", auth("USER", "ADMIN"), FileController.getTrashFiles);
+
+router.get("/:id/download", auth("USER", "ADMIN"), FileController.downloadFile);
+
+router.patch("/:id/restore", auth("USER", "ADMIN"), FileController.restoreFile);
+
 router.get("/:id", auth("USER", "ADMIN"), FileController.getSingleFile);
 
 router.patch("/:id", auth("USER", "ADMIN"), FileController.updateFile);

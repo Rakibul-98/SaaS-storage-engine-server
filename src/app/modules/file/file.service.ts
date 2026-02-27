@@ -2,15 +2,7 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { prisma } from "../../shared/prisma";
 import fs from "fs";
-
-const resolveFileType = (mimeType: string) => {
-  if (mimeType.startsWith("image/")) return "IMAGE";
-  if (mimeType.startsWith("video/")) return "VIDEO";
-  if (mimeType.startsWith("audio/")) return "AUDIO";
-  if (mimeType === "application/pdf") return "PDF";
-
-  return null;
-};
+import { resolveFileType } from "./file.utils";
 
 const uploadFile = async (
   userId: string,
@@ -117,6 +109,37 @@ const uploadFile = async (
   return savedFile;
 };
 
+const getFilesByFolder = async (userId: string, folderId: string) => {
+  if (!folderId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "folderId is required");
+  }
+
+  const folder = await prisma.folder.findFirst({
+    where: {
+      id: folderId,
+      userId,
+      isDeleted: false,
+    },
+  });
+
+  if (!folder) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Folder not found");
+  }
+
+  const files = await prisma.file.findMany({
+    where: {
+      folderId,
+      userId,
+      isDeleted: false,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return files;
+};
+
 const getSingleFile = async (userId: string, id: string) => {
   const file = await prisma.file.findFirst({
     where: {
@@ -128,6 +151,26 @@ const getSingleFile = async (userId: string, id: string) => {
 
   if (!file) {
     throw new ApiError(404, "File not found");
+  }
+
+  return file;
+};
+
+const downloadFile = async (userId: string, id: string) => {
+  const file = await prisma.file.findFirst({
+    where: {
+      id,
+      userId,
+      isDeleted: false,
+    },
+  });
+
+  if (!file) {
+    throw new ApiError(httpStatus.NOT_FOUND, "File not found");
+  }
+
+  if (!fs.existsSync(file.path)) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Physical file not found");
   }
 
   return file;
@@ -181,6 +224,40 @@ const deleteFile = async (userId: string, id: string) => {
   });
 };
 
+const getTrashFiles = async (userId: string) => {
+  return prisma.file.findMany({
+    where: {
+      userId,
+      isDeleted: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+};
+
+const restoreFile = async (userId: string, id: string) => {
+  const file = await prisma.file.findFirst({
+    where: {
+      id,
+      userId,
+    },
+  });
+
+  if (!file) {
+    throw new ApiError(httpStatus.NOT_FOUND, "File not found");
+  }
+
+  if (!file.isDeleted) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "File is not deleted");
+  }
+
+  return prisma.file.update({
+    where: { id },
+    data: { isDeleted: false },
+  });
+};
+
 const permanentDeleteFile = async (userId: string, id: string) => {
   const file = await prisma.file.findFirst({
     where: { id, userId },
@@ -203,8 +280,12 @@ const permanentDeleteFile = async (userId: string, id: string) => {
 
 export const FileService = {
   uploadFile,
+  getFilesByFolder,
   getSingleFile,
+  downloadFile,
   updateFile,
   deleteFile,
+  getTrashFiles,
+  restoreFile,
   permanentDeleteFile,
 };

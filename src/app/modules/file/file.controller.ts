@@ -24,6 +24,20 @@ const uploadFile = catchAsync(async (req: any, res: Response) => {
   });
 });
 
+const getFilesByFolder = catchAsync(async (req: any, res) => {
+  const result = await FileService.getFilesByFolder(
+    req.user.id,
+    req.query.folderId as string,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Files retrieved successfully",
+    data: result,
+  });
+});
+
 const getSingleFile = catchAsync(async (req: any, res) => {
   const result = await FileService.getSingleFile(req.user.id, req.params.id);
 
@@ -33,6 +47,12 @@ const getSingleFile = catchAsync(async (req: any, res) => {
     message: "File retrieved successfully",
     data: result,
   });
+});
+
+const downloadFile = catchAsync(async (req: any, res: Response) => {
+  const file = await FileService.downloadFile(req.user.id, req.params.id);
+
+  res.download(file.path, file.name);
 });
 
 const updateFile = catchAsync(async (req: any, res) => {
@@ -57,6 +77,28 @@ const deleteFile = catchAsync(async (req: any, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "File deleted successfully",
+    data: {},
+  });
+});
+
+const getTrashFiles = catchAsync(async (req: any, res) => {
+  const result = await FileService.getTrashFiles(req.user.id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Trash files retrieved successfully",
+    data: result,
+  });
+});
+
+const restoreFile = catchAsync(async (req: any, res) => {
+  const result = await FileService.restoreFile(req.user.id, req.params.id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "File restored successfully",
     data: result,
   });
 });
@@ -71,14 +113,18 @@ const permanentDeleteFile = catchAsync(async (req: any, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "File deleted permanently",
-    data: result,
+    data: {},
   });
 });
 
 export const FileController = {
   uploadFile,
+  getFilesByFolder,
   getSingleFile,
+  downloadFile,
   updateFile,
   deleteFile,
+  getTrashFiles,
+  restoreFile,
   permanentDeleteFile,
 };

@@ -4,6 +4,10 @@ import { DashboardController } from "./dashboard.controller";
 
 const router = express.Router();
 
-router.get("/", auth("USER", "ADMIN"), DashboardController.getUsageStatistics);
+router.get(
+  "/statistics",
+  auth("USER", "ADMIN"),
+  DashboardController.getUsageStatistics,
+);
 
 export const DashboardRoutes = router;

@@ -5,3 +5,4 @@ uploads/
 *.mp4
 /generated/prisma
 dist
+dist/

@@ -16,7 +16,7 @@ router.post(
   SubscriptionController.createPackage,
 );
 
-router.get("/", auth("ADMIN"), SubscriptionController.getAllPackages);
+router.get("/", auth("ADMIN", "USER"), SubscriptionController.getAllPackages);
 
 router.get("/:id", auth("ADMIN"), SubscriptionController.getSinglePackage);
 

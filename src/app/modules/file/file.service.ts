@@ -250,8 +250,20 @@ const deleteFile = async (userId: string, id: string) => {
 const getTrashFiles = async (userId: string) => {
   return prisma.file.findMany({
     where: {
-      userId,
       isDeleted: true,
+      userId,
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+      folder: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       updatedAt: "desc",

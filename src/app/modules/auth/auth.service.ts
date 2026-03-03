@@ -37,7 +37,7 @@ const registerUser = async (payload: TRegisterPayload) => {
 
   const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
 
-  await sendEmail(
+  sendEmail(
     email,
     "Verify Your Email",
     `<p>Click below to verify:</p>

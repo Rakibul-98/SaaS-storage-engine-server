@@ -51,7 +51,7 @@ const registerUser = (payload) => __awaiter(void 0, void 0, void 0, function* ()
         },
     });
     const verifyLink = `${config_1.default.frontend_url}/verify-email?token=${verifyToken}`;
-    yield (0, sendEmail_1.sendEmail)(email, "Verify Your Email", `<p>Click below to verify:</p>
+    (0, sendEmail_1.sendEmail)(email, "Verify Your Email", `<p>Click below to verify:</p>
      <a href="${verifyLink}">${verifyLink}</a>`);
     const { password, resetToken, resetTokenExpiry } = user, userWithoutPassword = __rest(user, ["password", "resetToken", "resetTokenExpiry"]);
     return userWithoutPassword;

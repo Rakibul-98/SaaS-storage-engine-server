@@ -18,7 +18,7 @@ const moduleRouters = [
         route: subscription_routes_1.SubscriptionRoutes,
     },
     {
-        path: "/userSubscriptions",
+        path: "/user-subscriptions",
         route: userSubscription_route_1.UserSubscriptionRoutes,
     },
     {

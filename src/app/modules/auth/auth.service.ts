@@ -130,7 +130,7 @@ const forgotPassword = async (email: string) => {
 
   const resetLink = `${config.frontend_url}/reset-password?token=${resetToken}`;
 
-  await sendEmail(
+  sendEmail(
     email,
     "Reset Password",
     `<p>Click below to reset:</p>

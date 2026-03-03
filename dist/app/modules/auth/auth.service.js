@@ -94,6 +94,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const jwtPayload = {
         id: user.id,
         email: user.email,
+        name: user.name,
         role: user.role,
     };
     const accessToken = (0, auth_utils_1.generateAccessToken)(jwtPayload);
@@ -116,7 +117,7 @@ const forgotPassword = (email) => __awaiter(void 0, void 0, void 0, function* ()
         },
     });
     const resetLink = `${config_1.default.frontend_url}/reset-password?token=${resetToken}`;
-    yield (0, sendEmail_1.sendEmail)(email, "Reset Password", `<p>Click below to reset:</p>
+    (0, sendEmail_1.sendEmail)(email, "Reset Password", `<p>Click below to reset:</p>
      <a href="${resetLink}">${resetLink}</a>`);
 });
 const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, function* () {

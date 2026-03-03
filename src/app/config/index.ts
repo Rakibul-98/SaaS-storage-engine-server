@@ -19,5 +19,6 @@ export default {
 
   resend_api_key: process.env.RESEND_API_KEY,
   resend_from_email:
-    process.env.RESEND_FROM_EMAIL || "SaaS Storage <onboarding@resend.dev>",
+    process.env.RESEND_FROM_EMAIL ||
+    "SaaS Storage <noreply@rakibulhasandev.com>",
 };

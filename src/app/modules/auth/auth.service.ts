@@ -37,12 +37,25 @@ const registerUser = async (payload: TRegisterPayload) => {
 
   const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
 
-  sendEmail(
-    email,
-    "Verify Your Email",
-    `<p>Click below to verify:</p>
-     <a href="${verifyLink}">${verifyLink}</a>`,
-  );
+  // await sendEmail(
+  //   email,
+  //   "Verify Your Email",
+  //   `<p>Click below to verify:</p>
+  //    <a href="${verifyLink}">${verifyLink}</a>`,
+  // );
+
+  try {
+    const emailResult = await sendEmail(
+      email,
+      "Verify Your Email",
+      `<p>Click below to verify:</p>
+       <a href="${verifyLink}">${verifyLink}</a>`,
+    );
+
+    console.log("Email sending result:", emailResult);
+  } catch (emailError) {
+    console.error("Failed to send verification email:", emailError);
+  }
 
   const { password, resetToken, resetTokenExpiry, ...userWithoutPassword } =
     user;
@@ -130,7 +143,7 @@ const forgotPassword = async (email: string) => {
 
   const resetLink = `${config.frontend_url}/reset-password?token=${resetToken}`;
 
-  sendEmail(
+  await sendEmail(
     email,
     "Reset Password",
     `<p>Click below to reset:</p>

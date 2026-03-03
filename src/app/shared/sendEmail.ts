@@ -1,4 +1,3 @@
-// src/app/shared/sendEmail.ts
 import nodemailer from "nodemailer";
 import config from "../config";
 
@@ -10,6 +9,9 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         user: config.email_user,
         pass: config.email_pass,
       },
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
     });
 
     await transporter.sendMail({

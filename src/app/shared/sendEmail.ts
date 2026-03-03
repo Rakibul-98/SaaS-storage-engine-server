@@ -1,27 +1,20 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import config from "../config";
+
+const resend = new Resend(config.resend_api_key);
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: config.email_user,
-        pass: config.email_pass,
-      },
-      connectionTimeout: 30000,
-      greetingTimeout: 30000,
-      socketTimeout: 30000,
-    });
-
-    await transporter.sendMail({
-      from: `"SaaS Storage" <${config.email_user}>`,
-      to,
+    const data = await resend.emails.send({
+      from: config.email_user || "<onboarding@resend.dev>",
+      to: [to],
       subject,
       html,
     });
-    console.log("Email sent successfully to:", to);
+
+    return { success: true, data };
   } catch (error) {
-    console.error("Email sending failed:", error);
+    console.error("❌ Resend error:", error);
+    throw error;
   }
 };

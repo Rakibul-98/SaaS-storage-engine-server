@@ -62,7 +62,6 @@ const verifyEmail = async (token: string) => {
   const user = await prisma.user.findFirst({
     where: {
       verifyToken: token,
-      verifyTokenExpiry: { gt: new Date() },
     },
   });
 

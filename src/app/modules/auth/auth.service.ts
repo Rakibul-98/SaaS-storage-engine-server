@@ -13,6 +13,7 @@ import config from "../../config";
 
 const registerUser = async (payload: TRegisterPayload) => {
   const { name, email } = payload;
+
   const existingUser = await prisma.user.findUnique({
     where: { email },
   });
@@ -22,44 +23,39 @@ const registerUser = async (payload: TRegisterPayload) => {
   }
 
   const hashedPassword = await bcrypt.hash(payload.password, 10);
-
   const verifyToken = generateToken();
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-      verifyToken,
-      verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
-    },
+  return await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        verifyToken,
+        verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+
+    const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
+
+    try {
+      await sendEmail(
+        email,
+        "Verify Your Email",
+        `<p>Click below to verify:</p>
+         <a href="${verifyLink}">${verifyLink}</a>`,
+      );
+    } catch (emailError) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to send verification email. Please try again.",
+      );
+    }
+
+    const { password, resetToken, resetTokenExpiry, ...userWithoutPassword } =
+      user;
+    return userWithoutPassword;
   });
-
-  const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
-
-  // await sendEmail(
-  //   email,
-  //   "Verify Your Email",
-  //   `<p>Click below to verify:</p>
-  //    <a href="${verifyLink}">${verifyLink}</a>`,
-  // );
-
-  try {
-    const emailResult = await sendEmail(
-      email,
-      "Verify Your Email",
-      `<p>Click below to verify:</p>
-       <a href="${verifyLink}">${verifyLink}</a>`,
-    );
-
-    console.log("Email sending result:", emailResult);
-  } catch (emailError) {
-    console.error("Failed to send verification email:", emailError);
-  }
-
-  const { password, resetToken, resetTokenExpiry, ...userWithoutPassword } =
-    user;
-  return userWithoutPassword;
 };
 
 const verifyEmail = async (token: string) => {
@@ -72,6 +68,29 @@ const verifyEmail = async (token: string) => {
 
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired token");
+  }
+
+  if (user.verifyTokenExpiry && user.verifyTokenExpiry < new Date()) {
+    const newToken = generateToken();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verifyToken: newToken,
+        verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+
+    const verifyLink = `${config.frontend_url}/verify-email?token=${newToken}`;
+
+    await sendEmail(
+      user.email,
+      "New Verification Link",
+      `<p>Your previous link expired. Use this new one:</p><a href="${verifyLink}">${verifyLink}</a>`,
+    );
+
+    return {
+      message: "Token expired. A new verification email has been sent.",
+    };
   }
 
   await prisma.user.update({
@@ -129,7 +148,7 @@ const loginUser = async (payload: TLoginPayload) => {
 const forgotPassword = async (email: string) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user) return; // prevent enumeration
+  if (!user) return;
 
   const resetToken = generateToken();
 

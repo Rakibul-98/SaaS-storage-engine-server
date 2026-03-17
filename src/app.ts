@@ -9,7 +9,11 @@ const app: Application = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://saas-storage-engine.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://saas-storage-engine.vercel.app",
+      "https://saas-storage.rakibulhasandev.com",
+    ],
     credentials: true,
   }),
 );

@@ -6,6 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.join(process.cwd(), ".env") });
+const geminiApiKey = process.env.GEMINI_API_KEY;
+if (!geminiApiKey) {
+    throw new Error("GEMINI_API_KEY is not defined in environment variables");
+}
 exports.default = {
     node_env: process.env.NODE_ENV,
     port: process.env.PORT,
@@ -24,8 +28,8 @@ exports.default = {
         "SaaS Storage <noreply@rakibulhasandev.com>",
     cloudinary: {
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY || "816611513816565",
-        api_secret: process.env.CLOUDINARY_API_SECRET || "hpHQRHHW4OmHm6kQvXvMbspXneY",
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
     },
-    gemini_api_key: process.env.GEMINI_API_KEY || "AIzaSyDkSdyOjHykeKm6bEuRXWUzhK20b-q7GGg",
+    gemini_api_key: geminiApiKey,
 };

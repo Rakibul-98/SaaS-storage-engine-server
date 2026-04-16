@@ -23,10 +23,8 @@ export default {
 
   cloudinary: {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY || "816611513816565",
-    api_secret:
-      process.env.CLOUDINARY_API_SECRET || "hpHQRHHW4OmHm6kQvXvMbspXneY",
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
   },
-  gemini_api_key:
-    process.env.GEMINI_API_KEY || "AIzaSyDkSdyOjHykeKm6bEuRXWUzhK20b-q7GGg",
+  gemini_api_key: process.env.GEMINI_API_KEY,
 };

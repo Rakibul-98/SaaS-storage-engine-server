@@ -7,9 +7,18 @@ model File {
   user   User   @relation(fields: [userId], references: [id])
   folder Folder @relation(fields: [folderId], references: [id])
 
-  size Int
-  type FileType
-  path String
+  size         Int
+  type         FileType
+  path         String
+  cloudinaryId String?
+  thumbnailUrl String?
+  mimeType     String?
+
+  aiTags    String[]
+  aiSummary String?
+
+  shareLinks   ShareLink[]
+  activityLogs ActivityLog[]
 
   isDeleted Boolean @default(false)
 
@@ -18,5 +27,6 @@ model File {
 
   @@index([userId])
   @@index([folderId])
+  @@index([name])
   @@map("Files")
 }

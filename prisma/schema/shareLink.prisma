@@ -1,0 +1,20 @@
+model ShareLink {
+  id     String @id @default(uuid())
+  token  String @unique
+  fileId String
+
+  file File @relation(fields: [fileId], references: [id])
+
+  expiresAt DateTime?
+  maxViews  Int?
+  viewCount Int       @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([fileId])
+  @@map("ShareLinks")
+}

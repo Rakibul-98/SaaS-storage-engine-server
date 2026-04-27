@@ -41,30 +41,51 @@ const registerUser = (payload) => __awaiter(void 0, void 0, void 0, function* ()
     }
     const hashedPassword = yield bcrypt_1.default.hash(payload.password, 10);
     const verifyToken = (0, auth_utils_1.generateToken)();
-    const user = yield prisma_1.prisma.user.create({
-        data: {
-            name,
-            email,
-            password: hashedPassword,
-            verifyToken,
-            verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
-        },
-    });
-    const verifyLink = `${config_1.default.frontend_url}/verify-email?token=${verifyToken}`;
-    (0, sendEmail_1.sendEmail)(email, "Verify Your Email", `<p>Click below to verify:</p>
-     <a href="${verifyLink}">${verifyLink}</a>`);
-    const { password, resetToken, resetTokenExpiry } = user, userWithoutPassword = __rest(user, ["password", "resetToken", "resetTokenExpiry"]);
-    return userWithoutPassword;
+    return yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        const user = yield tx.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                verifyToken,
+                verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+            },
+        });
+        const verifyLink = `${config_1.default.frontend_url}/verify-email?token=${verifyToken}`;
+        try {
+            yield (0, sendEmail_1.sendEmail)(email, "Verify Your Email", `<p>Click below to verify:</p>
+         <a href="${verifyLink}">${verifyLink}</a>`);
+        }
+        catch (emailError) {
+            throw new ApiError_1.default(http_status_1.default.INTERNAL_SERVER_ERROR, "Failed to send verification email. Please try again.");
+        }
+        const { password, resetToken, resetTokenExpiry } = user, userWithoutPassword = __rest(user, ["password", "resetToken", "resetTokenExpiry"]);
+        return userWithoutPassword;
+    }));
 });
 const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield prisma_1.prisma.user.findFirst({
         where: {
             verifyToken: token,
-            verifyTokenExpiry: { gt: new Date() },
         },
     });
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Invalid or expired token");
+    }
+    if (user.verifyTokenExpiry && user.verifyTokenExpiry < new Date()) {
+        const newToken = (0, auth_utils_1.generateToken)();
+        yield prisma_1.prisma.user.update({
+            where: { id: user.id },
+            data: {
+                verifyToken: newToken,
+                verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+            },
+        });
+        const verifyLink = `${config_1.default.frontend_url}/verify-email?token=${newToken}`;
+        yield (0, sendEmail_1.sendEmail)(user.email, "New Verification Link", `<p>Your previous link expired. Use this new one:</p><a href="${verifyLink}">${verifyLink}</a>`);
+        return {
+            message: "Token expired. A new verification email has been sent.",
+        };
     }
     yield prisma_1.prisma.user.update({
         where: { id: user.id },
@@ -107,7 +128,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 const forgotPassword = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield prisma_1.prisma.user.findUnique({ where: { email } });
     if (!user)
-        return; // prevent enumeration
+        return;
     const resetToken = (0, auth_utils_1.generateToken)();
     yield prisma_1.prisma.user.update({
         where: { id: user.id },
@@ -117,7 +138,7 @@ const forgotPassword = (email) => __awaiter(void 0, void 0, void 0, function* ()
         },
     });
     const resetLink = `${config_1.default.frontend_url}/reset-password?token=${resetToken}`;
-    (0, sendEmail_1.sendEmail)(email, "Reset Password", `<p>Click below to reset:</p>
+    yield (0, sendEmail_1.sendEmail)(email, "Reset Password", `<p>Click below to reset:</p>
      <a href="${resetLink}">${resetLink}</a>`);
 });
 const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, function* () {

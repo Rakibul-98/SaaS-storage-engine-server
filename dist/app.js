@@ -11,7 +11,11 @@ const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalEr
 const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:3000", "https://saas-storage-engine.vercel.app"],
+    origin: [
+        "http://localhost:3000",
+        "https://saas-storage-engine.vercel.app",
+        "https://saas-storage.rakibulhasandev.com",
+    ],
     credentials: true,
 }));
 // Parser

@@ -19,4 +19,7 @@ exports.default = {
     },
     email_user: process.env.EMAIL_USER,
     email_pass: process.env.EMAIL_PASS,
+    resend_api_key: process.env.RESEND_API_KEY,
+    resend_from_email: process.env.RESEND_FROM_EMAIL ||
+        "SaaS Storage <noreply@rakibulhasandev.com>",
 };

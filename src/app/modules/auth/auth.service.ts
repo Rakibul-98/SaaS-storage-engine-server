@@ -25,6 +25,11 @@ const registerUser = async (payload: TRegisterPayload) => {
   const hashedPassword = await bcrypt.hash(payload.password, 10);
   const verifyToken = generateToken();
 
+  // Look up the Free plan before the transaction
+  const freePlan = await prisma.subscriptionPackage.findFirst({
+    where: { name: "Free", isDeleted: false },
+  });
+
   return await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
@@ -35,6 +40,23 @@ const registerUser = async (payload: TRegisterPayload) => {
         verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
       },
     });
+
+    // Assign Free plan automatically if it exists
+    if (freePlan) {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 100); // effectively permanent for free tier
+
+      await tx.userSubscription.create({
+        data: {
+          userId: user.id,
+          packageId: freePlan.id,
+          startDate,
+          endDate,
+          isActive: true,
+        },
+      });
+    }
 
     const verifyLink = `${config.frontend_url}/verify-email?token=${verifyToken}`;
 

@@ -8,4 +8,17 @@ enum FileType {
   VIDEO
   AUDIO
   PDF
+  DOCUMENT
+  OTHER
+}
+
+enum ActivityAction {
+  UPLOAD
+  DELETE
+  RESTORE
+  PERMANENT_DELETE
+  RENAME
+  MOVE
+  SHARE
+  DOWNLOAD
 }

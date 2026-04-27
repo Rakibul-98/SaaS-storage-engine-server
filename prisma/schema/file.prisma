@@ -7,11 +7,19 @@ model File {
   user   User   @relation(fields: [userId], references: [id])
   folder Folder @relation(fields: [folderId], references: [id])
 
-  size Int
-  type FileType
-  path String
+  size         Int
+  type         FileType
+  mimeType     String?
+  path         String
+  cloudinaryId String?
+  thumbnailUrl String?
+  aiTags       String[]
+  aiSummary    String?
 
   isDeleted Boolean @default(false)
+
+  shareLinks   ShareLink[]
+  activityLogs ActivityLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -19,4 +27,41 @@ model File {
   @@index([userId])
   @@index([folderId])
   @@map("Files")
+}
+
+model ShareLink {
+  id     String @id @default(uuid())
+  token  String @unique
+  fileId String
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime?
+  maxViews  Int?
+  viewCount Int       @default(0)
+  isActive  Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([fileId])
+  @@map("ShareLinks")
+}
+
+model ActivityLog {
+  id     String  @id @default(uuid())
+  userId String
+  fileId String?
+
+  user User  @relation(fields: [userId], references: [id])
+  file File? @relation(fields: [fileId], references: [id], onDelete: SetNull)
+
+  action   ActivityAction
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([fileId])
+  @@map("ActivityLogs")
 }

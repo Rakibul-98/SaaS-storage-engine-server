@@ -1,17 +1,11 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Template` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
-CREATE TYPE "FileType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO', 'PDF');
+CREATE TYPE "FileType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER');
 
--- DropTable
-DROP TABLE "Template";
+-- CreateEnum
+CREATE TYPE "ActivityAction" AS ENUM ('UPLOAD', 'DELETE', 'RESTORE', 'PERMANENT_DELETE', 'RENAME', 'MOVE', 'SHARE', 'DOWNLOAD');
 
 -- CreateTable
 CREATE TABLE "Files" (
@@ -21,12 +15,44 @@ CREATE TABLE "Files" (
     "folderId" TEXT NOT NULL,
     "size" INTEGER NOT NULL,
     "type" "FileType" NOT NULL,
+    "mimeType" TEXT,
     "path" TEXT NOT NULL,
+    "cloudinaryId" TEXT,
+    "thumbnailUrl" TEXT,
+    "aiTags" TEXT[],
+    "aiSummary" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Files_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ShareLinks" (
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "fileId" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3),
+    "maxViews" INTEGER,
+    "viewCount" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ShareLinks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ActivityLogs" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "fileId" TEXT,
+    "action" "ActivityAction" NOT NULL,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ActivityLogs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -68,6 +94,10 @@ CREATE TABLE "Users" (
     "password" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'USER',
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
+    "verifyToken" TEXT,
+    "verifyTokenExpiry" TIMESTAMP(3),
+    "resetToken" TEXT,
+    "resetTokenExpiry" TIMESTAMP(3),
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -95,6 +125,21 @@ CREATE INDEX "Files_userId_idx" ON "Files"("userId");
 
 -- CreateIndex
 CREATE INDEX "Files_folderId_idx" ON "Files"("folderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShareLinks_token_key" ON "ShareLinks"("token");
+
+-- CreateIndex
+CREATE INDEX "ShareLinks_token_idx" ON "ShareLinks"("token");
+
+-- CreateIndex
+CREATE INDEX "ShareLinks_fileId_idx" ON "ShareLinks"("fileId");
+
+-- CreateIndex
+CREATE INDEX "ActivityLogs_userId_idx" ON "ActivityLogs"("userId");
+
+-- CreateIndex
+CREATE INDEX "ActivityLogs_fileId_idx" ON "ActivityLogs"("fileId");
 
 -- CreateIndex
 CREATE INDEX "Folders_userId_idx" ON "Folders"("userId");
@@ -125,6 +170,15 @@ ALTER TABLE "Files" ADD CONSTRAINT "Files_userId_fkey" FOREIGN KEY ("userId") RE
 
 -- AddForeignKey
 ALTER TABLE "Files" ADD CONSTRAINT "Files_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "Folders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShareLinks" ADD CONSTRAINT "ShareLinks_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "Files"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityLogs" ADD CONSTRAINT "ActivityLogs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityLogs" ADD CONSTRAINT "ActivityLogs_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "Files"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Folders" ADD CONSTRAINT "Folders_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

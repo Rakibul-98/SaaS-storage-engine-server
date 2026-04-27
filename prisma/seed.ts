@@ -5,8 +5,9 @@ import { FileType } from "@prisma/client";
 async function main() {
   console.log("Seeding database...");
 
+  // ── Admin user ────────────────────────────────────────────────
   const adminEmail = "admin@saas.com";
-  const adminPassword = "123456";
+  const adminPassword = "Admin@12345";
 
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
@@ -14,21 +15,21 @@ async function main() {
 
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash(adminPassword, 12);
-
     await prisma.user.create({
       data: {
         name: "Super Admin",
         email: adminEmail,
         password: hashedPassword,
         role: "ADMIN",
+        isVerified: true,
       },
     });
-
     console.log("Admin created");
   } else {
     console.log("Admin already exists");
   }
 
+  // ── Subscription packages ─────────────────────────────────────
   const packages = [
     {
       name: "Free",
@@ -81,10 +82,10 @@ async function main() {
   for (const pkg of packages) {
     await prisma.subscriptionPackage.upsert({
       where: { name: pkg.name },
-      update: {},
+      update: pkg, // update fields if package already exists
       create: pkg,
     });
-    console.log(`${pkg.name} package created`);
+    console.log(`"${pkg.name}" package upserted`);
   }
 
   console.log("Seeding completed successfully");

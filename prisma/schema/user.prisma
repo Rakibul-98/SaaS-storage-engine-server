@@ -15,6 +15,7 @@ model User {
   subscriptions UserSubscription[]
   folders       Folder[]
   files         File[]
+  activityLogs  ActivityLog[]
 
   isDeleted Boolean @default(false)
 

@@ -22,4 +22,10 @@ exports.default = {
     resend_api_key: process.env.RESEND_API_KEY,
     resend_from_email: process.env.RESEND_FROM_EMAIL ||
         "SaaS Storage <noreply@rakibulhasandev.com>",
+    cloudinary: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY || "816611513816565",
+        api_secret: process.env.CLOUDINARY_API_SECRET || "hpHQRHHW4OmHm6kQvXvMbspXneY",
+    },
+    gemini_api_key: process.env.GEMINI_API_KEY || "AIzaSyDkSdyOjHykeKm6bEuRXWUzhK20b-q7GGg",
 };

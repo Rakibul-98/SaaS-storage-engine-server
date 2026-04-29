@@ -41,6 +41,10 @@ const registerUser = (payload) => __awaiter(void 0, void 0, void 0, function* ()
     }
     const hashedPassword = yield bcrypt_1.default.hash(payload.password, 10);
     const verifyToken = (0, auth_utils_1.generateToken)();
+    // Look up the Free plan before the transaction
+    const freePlan = yield prisma_1.prisma.subscriptionPackage.findFirst({
+        where: { name: "Free", isDeleted: false },
+    });
     return yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield tx.user.create({
             data: {
@@ -51,6 +55,21 @@ const registerUser = (payload) => __awaiter(void 0, void 0, void 0, function* ()
                 verifyTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
             },
         });
+        // Assign Free plan automatically if it exists
+        if (freePlan) {
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setFullYear(endDate.getFullYear() + 100); // effectively permanent for free tier
+            yield tx.userSubscription.create({
+                data: {
+                    userId: user.id,
+                    packageId: freePlan.id,
+                    startDate,
+                    endDate,
+                    isActive: true,
+                },
+            });
+        }
         const verifyLink = `${config_1.default.frontend_url}/verify-email?token=${verifyToken}`;
         try {
             yield (0, sendEmail_1.sendEmail)(email, "Verify Your Email", `<p>Click below to verify:</p>

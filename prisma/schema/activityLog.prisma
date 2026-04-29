@@ -1,0 +1,18 @@
+model ActivityLog {
+  id     String  @id @default(uuid())
+  userId String
+  fileId String?
+
+  user User  @relation(fields: [userId], references: [id])
+  file File? @relation(fields: [fileId], references: [id])
+
+  action   ActivityAction
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([fileId])
+  @@index([createdAt])
+  @@map("ActivityLogs")
+}

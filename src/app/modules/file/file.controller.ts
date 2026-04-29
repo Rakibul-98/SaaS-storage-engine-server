@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { FileService } from "./file.service";
 import catchAsync from "../../shared/catchAsync";
@@ -8,9 +8,8 @@ import pick from "../../shared/pick";
 import { paginationOptions } from "../../helper/paginationHelper";
 
 const uploadFile = catchAsync(async (req: any, res: Response) => {
-  if (!req.body.folderId) {
+  if (!req.body.folderId)
     throw new ApiError(httpStatus.BAD_REQUEST, "folderId is required");
-  }
 
   const result = await FileService.uploadFile(
     req.user.id,
@@ -28,13 +27,11 @@ const uploadFile = catchAsync(async (req: any, res: Response) => {
 
 const getFilesByFolder = catchAsync(async (req: any, res: Response) => {
   const options = pick(req.query, paginationOptions);
-
   const result = await FileService.getFilesByFolder(
     req.user.id,
     req.query.folderId as string,
     options,
   );
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -46,10 +43,11 @@ const getFilesByFolder = catchAsync(async (req: any, res: Response) => {
 
 const searchFiles = catchAsync(async (req: any, res: Response) => {
   const options = pick(req.query, paginationOptions);
-  const q = req.query.q as string;
-
-  const result = await FileService.searchFiles(req.user.id, q, options);
-
+  const result = await FileService.searchFiles(
+    req.user.id,
+    req.query.q as string,
+    options,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -61,7 +59,6 @@ const searchFiles = catchAsync(async (req: any, res: Response) => {
 
 const getSingleFile = catchAsync(async (req: any, res: Response) => {
   const result = await FileService.getSingleFile(req.user.id, req.params.id);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -71,34 +68,10 @@ const getSingleFile = catchAsync(async (req: any, res: Response) => {
 });
 
 const downloadFile = catchAsync(async (req: any, res: Response) => {
-  const file = await FileService.downloadFile(req.user.id, req.params.id);
-
-  // If file has a Cloudinary URL, return it for client-side download
-  if (file.path && file.path.startsWith("http")) {
-    return sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Download URL retrieved",
-      data: { url: file.path },
-    });
-  }
-
-  // Return URL from cloudinaryId if present
-  if ((file as any).cloudinaryId) {
-    return sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Download URL retrieved",
-      data: { url: file.path },
-    });
-  }
-
-  // Fallback: return the stored path as URL
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Download URL retrieved",
-    data: { url: file.path },
+  const file = await FileService.downloadFile(req.params.id);
+  // Redirect to Cloudinary URL for direct download
+  res.json({
+    url: file.path, // or signed URL
   });
 });
 
@@ -108,7 +81,6 @@ const updateFile = catchAsync(async (req: any, res: Response) => {
     req.params.id,
     req.body,
   );
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -119,18 +91,16 @@ const updateFile = catchAsync(async (req: any, res: Response) => {
 
 const deleteFile = catchAsync(async (req: any, res: Response) => {
   await FileService.deleteFile(req.user.id, req.params.id);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "File deleted successfully",
+    message: "File moved to trash",
     data: {},
   });
 });
 
 const getTrashFiles = catchAsync(async (req: any, res: Response) => {
   const result = await FileService.getTrashFiles(req.user.id);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -141,7 +111,6 @@ const getTrashFiles = catchAsync(async (req: any, res: Response) => {
 
 const restoreFile = catchAsync(async (req: any, res: Response) => {
   const result = await FileService.restoreFile(req.user.id, req.params.id);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -151,15 +120,11 @@ const restoreFile = catchAsync(async (req: any, res: Response) => {
 });
 
 const permanentDeleteFile = catchAsync(async (req: any, res: Response) => {
-  const result = await FileService.permanentDeleteFile(
-    req.user.id,
-    req.params.id,
-  );
-
+  await FileService.permanentDeleteFile(req.user.id, req.params.id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "File deleted permanently",
+    message: "File permanently deleted",
     data: {},
   });
 });
@@ -170,7 +135,6 @@ const createShareLink = catchAsync(async (req: any, res: Response) => {
     req.params.id,
     req.body,
   );
-
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -179,23 +143,8 @@ const createShareLink = catchAsync(async (req: any, res: Response) => {
   });
 });
 
-const revokeShareLink = catchAsync(async (req: any, res: Response) => {
-  const result = await FileService.revokeShareLink(
-    req.user.id,
-    req.params.token,
-  );
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Share link revoked",
-    data: result,
-  });
-});
-
-const getSharedFile = catchAsync(async (req: any, res: Response) => {
+const getSharedFile = catchAsync(async (req: Request, res: Response) => {
   const result = await FileService.getSharedFile(req.params.token);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -204,11 +153,19 @@ const getSharedFile = catchAsync(async (req: any, res: Response) => {
   });
 });
 
+const revokeShareLink = catchAsync(async (req: any, res: Response) => {
+  await FileService.revokeShareLink(req.user.id, req.params.token);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Share link revoked",
+    data: {},
+  });
+});
+
 const getActivityLog = catchAsync(async (req: any, res: Response) => {
   const options = pick(req.query, paginationOptions);
-
   const result = await FileService.getActivityLog(req.user.id, options);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -230,7 +187,7 @@ export const FileController = {
   restoreFile,
   permanentDeleteFile,
   createShareLink,
-  revokeShareLink,
   getSharedFile,
+  revokeShareLink,
   getActivityLog,
 };

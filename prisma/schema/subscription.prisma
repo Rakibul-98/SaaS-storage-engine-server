@@ -6,6 +6,7 @@ model SubscriptionPackage {
   maxLevels       Int
   allowedFileType FileType[]
   maxFileSizeMB   Int
+  storageQuotaMB  Int
   fileLimit       Int
   filesPerFolder  Int
 
